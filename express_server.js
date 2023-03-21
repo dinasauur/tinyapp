@@ -47,10 +47,12 @@ app.get("/urls/new", (req, res) => {
 
 // IMPORTANT WARNING - The order of route definitions matters! Refer to Note 3. 
 
-// Route handler that will match the POST request. Refer to end of Note 4. 
+// Route handler that will match the POST request. Refer to end of Note 4 and Note 5. 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok");        // Respond with 'Ok' (we will replace this)
+  console.log(req.body);                    // Log the POST request body to the console
+  const newID = generateRandomString();     // called the generateRandomString funciton created above to create newID
+  urlDatabase[newID] = req.body.longURL;    // Save the longURL and short URL id to the urlDatabase
+  res.redirect(`/urls/${newID}`);           // Tell browser to go to a new page that shows them the new short url they created
 });
 
 // Route handler which renders the new template urls_show. Refer to Note 2. 
@@ -106,20 +108,25 @@ app.listen(PORT, () => {
  * Our server logs the request body to the console, then responds with 200 OK.
  * Our browser renders the "Ok" message.
  * 
+ *** SIDE NOTE
  * We'll be able to see the new form in the browser at /urls/new. How? This is what we did in the form (in urls_new template) ->
  * a) The form has an action attribute set to /urls
  * b) The form's method is set to POST
  * c) The form has one named input, with the name attribute set to longURL
  * This means that when this form is submitted, it will make a request to POST /urls, and the body will contain one URL-encoded name-value pair with the name longURL.
  *
- *  Note that the input has been parsed into a JS object, where longURL is the key; we specified this key using the input attribute name. The value is the content from the input field. 
- *  Input looked like this -> { longURL: '' }, without the body-parser middleware, the input would have looked like longURL=http%3A%2F%google.com
+ * Note that the input has been parsed into a JS object, where longURL is the key; we specified this key using the input attribute name. The value is the content from the input field. 
+ * Input looked like this -> { longURL: '' }, without the body-parser middleware, the input would have looked like longURL=http%3A%2F%google.com
  */
 
 /*** NOTE 5
- * GENERATE A RANDOM SHORT URL ID - returns a string of 6 random alphanumeric characters to be returned back to the browser. To do so, must create another POST handler
- * 
- * 
+ * GENERATE A RANDOM SHORT URL ID - returns a string of 6 random alphanumeric characters to be returned back to the browser. To do so, update the POST handler.
+ *** EXPLANATION OF THE POST HANDLER AFTER CHANGES
+ * After we generate our new short URL id, we add it to our database.
+ * Our server then responds with a redirect to /urls/:id
+ * Our browser then makes a GET request to /urls/:id
+ * Using the id, our server looks up the longURL from the database, sends the id and longURL to the urls_show template, generates the HTML, and then sends this HTML back to the browser
+ * The browser then renders this HTML
  */
 
 /*** NOTE 6 - WHAT IS EXPRESS?
