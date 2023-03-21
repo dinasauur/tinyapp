@@ -61,6 +61,12 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// Route handler that redirects any request to /u/:id to its longURL. Example - http://localhost:8080/u/b2xVn2 redirects to LHL website.
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -80,7 +86,7 @@ app.listen(PORT, () => {
  *  Filled out the urls_show.ejs template to display the long URL and its shortened form. Also included a link (href="#") for creating a new url.
  */
 
-/*** NOTE 3
+/*** NOTE 3 
  *  The GET /urls/new route needs to be defined before the GET /urls/:id route. Because routes defined earlier will take precedence.
  *  So, if we place this route after the /urls/:id definition, any calls to /urls/new will be handled by app.get("/urls/:id", ...) because Express will think that new is a route parameter
  *  A good rule of thumb to follow is that routes should be ordered from most specific to least specific.
