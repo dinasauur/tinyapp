@@ -25,9 +25,11 @@
 
     <main style="margin: 1em;">
       <h3>Create TinyURL</h3>
+      <!-- The action attribute tells the form which URL to submit to while the method attribute tells the form which HTTP method to use when submitting the form-->
       <form class="form-inline" action="/urls" method="POST">
         <div class="form-group mb-2">
           <label for="longURL">Enter a URL:</label>
+          <!-- The name attribute under input identifies the data we are sending; in this case, it adds the key longURL to the data we'll be sending in the body of our POST request.-->
           <input
             class="form-control"
             type="text"
@@ -35,6 +37,8 @@
             placeholder="http://"
             style="width: 300px; margin: 1em"
           />
+          <!-- The button tag has an important attribute: type. This attribute tells how the button to behave. 
+            A button with a submit type, will submit the form data to the server. Whenever you are building a form be sure to always include a button with type="submit" attribute.-->
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
       </form>
