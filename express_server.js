@@ -32,11 +32,19 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars); // passing the templateVars object to the template called "urls_index"
 });   
 
+// Route handler to render the urls_new.ejs template in the browser to present the form to the user
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+})
+
+// IMPORTANT WARNING - The order of route definitions matters! Refer to Note 3. 
+
 // Route handler which renders the new template urls_show. Refer to Note 2.
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] }; 
   res.render("urls_show", templateVars);
 });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -62,4 +70,18 @@ app.listen(PORT, () => {
   * We then used EJS to render this data to our web page. 
   * We used Express route parameters to pass data from our frontend to our backend via the request url. 
   * Finally, we created a partial template for our header so that we can have the code for it in one location, but render it on multiple pages
+  */
+
+ /*** NOTE 3
+  * The GET /urls/new route needs to be defined before the GET /urls/:id route. Because routes defined earlier will take precedence.
+  * So, if we place this route after the /urls/:id definition, any calls to /urls/new will be handled by app.get("/urls/:id", ...) because Express will think that new is a route parameter
+  * A good rule of thumb to follow is that routes should be ordered from most specific to least specific.
+  ** VISUALIZE HOW THE NEW GET ROUTE IS USED
+  *     // Browser //                                                      // Server //
+  * 1. Browser requests new url form    ->    2. GET/urls/new     ->    3. Server finds the "urls_nwe" template, generates the HTML, and sends it back to the browser
+  * 5. Browser renders the HTML form received from server         <-    4. 200 ok
+  * 
+  * When we navigate to /urls/new in our browser, our browser makes a GET request to our newly created route.
+  * Our sever responds by finding urls_new template, generating the HTML, and sending it back to the browser.
+  * The browser then renders this HTML.
   */
