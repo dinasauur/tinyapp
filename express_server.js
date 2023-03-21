@@ -103,9 +103,15 @@ app.listen(PORT, () => {
   *  (If you find that req.body is undefined, it may be that the body-parser middleware is not being run correctly.)
   *  The data in the input field will be avaialbe to us in the req.body.longURL variable, which we can store in our urlDatabase object
   * 
-  ** Add a post route to receive the form submisison
+  ** EXPLANATION OF WHAT THE POST HANDLER CODE DOES
+  * We'll be able to see the new form in the browser at /urls/new. How? This is what we did in the form (in urls_new template) ->
+  * a) The form has an action attribute set to /urls
+  * b) The form's method is set to POST
+  * c) The form has one named input, with the name attribute set to longURL
+  * This means that when this form is submitted, it will make a request to POST /urls, and the body will contain one URL-encoded name-value pair with the name longURL.
+  *
   *  Note that the input has been parsed into a JS object, where longURL is the key; we specified this key using the input attribute name. The value is the content from the input field. 
-  *  Input looked like this -> { longURL: '' }
+  *  Input looked like this -> { longURL: '' }, without the body-parser middleware, the input would have looked like longURL=http%3A%2F%google.com
   */
 
 
