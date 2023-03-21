@@ -1,9 +1,9 @@
-const { Template } = require("ejs");
-const express = require("express");
-const app = express();
-const PORT = 8080; // default port 8080
+const { Template } = require("ejs");       // Import the ejs template engine  Read Note 6
+const express = require("express");        // Import the express library      Read Note 6
+const app = express();                     // Define our app as an instance of express
+const PORT = 8080;                         // Define our base URL as http:\\localhost:8080
 
-app.set("view engine", "ejs"); // This tells the Express app to use EJS as its templating engine
+app.set("view engine", "ejs");             // This tells the Express app to use EJS as its templating engine
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -32,7 +32,7 @@ app.get("/hello", (req, res) => {
 // Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase }; // templateVars object contains the urlDatabase under the key urls
-  res.render("urls_index", templateVars); // passing the templateVars object to the template called "urls_index"
+  res.render("urls_index", templateVars);     // passing the templateVars object to the template called "urls_index"
 });   
 
 // Route handler to render the urls_new.ejs template in the browser to present the form to the user
@@ -45,7 +45,7 @@ app.get("/urls/new", (req, res) => {
 // Route handler that will match the POST request. Refer to end of Note 4. 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  res.send("Ok");        // Respond with 'Ok' (we will replace this)
 });
 
 // Route handler which renders the new template urls_show. Refer to Note 2. 
@@ -74,12 +74,6 @@ app.listen(PORT, () => {
   *  Filled out the urls_show.ejs template to display the long URL and its shortened form. Also included a link (href="#") for creating a new url.
   */
 
- /*** CONCLUSION
-  *  We used the Express render method to respond to requests by sending back a template, along with an object containing the data the template needs. 
-  *  We then used EJS to render this data to our web page. 
-  *  We used Express route parameters to pass data from our frontend to our backend via the request url. 
-  *  Finally, we created a partial template for our header so that we can have the code for it in one location, but render it on multiple pages
-  */
 
  /*** NOTE 3
   *  The GET /urls/new route needs to be defined before the GET /urls/:id route. Because routes defined earlier will take precedence.
@@ -103,7 +97,7 @@ app.listen(PORT, () => {
   *  (If you find that req.body is undefined, it may be that the body-parser middleware is not being run correctly.)
   *  The data in the input field will be avaialbe to us in the req.body.longURL variable, which we can store in our urlDatabase object
   * 
-  ** EXPLANATION OF WHAT THE POST HANDLER CODE DOES
+  *** EXPLANATION OF WHAT THE POST HANDLER CODE DOES
   * We'll be able to see the new form in the browser at /urls/new. How? This is what we did in the form (in urls_new template) ->
   * a) The form has an action attribute set to /urls
   * b) The form's method is set to POST
@@ -114,5 +108,26 @@ app.listen(PORT, () => {
   *  Input looked like this -> { longURL: '' }, without the body-parser middleware, the input would have looked like longURL=http%3A%2F%google.com
   */
 
+  /*** NOTE 6 - WHAT IS EXPRESS?
+  * Express.js is a Node js web application server framework, which is specifically designed for building single-page, multi-page, and hybrid web applications.
+  * It has become the standard server framework for node.js. Express is the backend part of something known as the MEAN stack.
+  * The MEAN is a free and open-source JavaScript software stack for building dynamic web sites and web applications which has the following components; 
+  * 1) MongoDB – The standard NoSQL database 
+  * 2) Express.js – The default web applications framework 
+  * 3) Angular.js – The JavaScript MVC framework used for web applications
+  * 4) Node.js – Framework used for scalable server-side and networking applications.
+  * The Express.js framework makes it very easy to develop an application which can be used to handle multiple types of requests like the GET, PUT, and POST and DELETE requests.
+  *** HOW DOES EXPRESS AND EJS WORK TOGETHER?
+  * Express is just sending and receiving requests. EJS translates those templates into actual HTML.
+  * EJS is like a filter that Express uses to turn templates into web pages, and as it sends its information through the filter, what you end up with is what the user ends up seeing in their browser.
+  */
 
+  /*** CONCLUSION
+  *** NOTE 1 - 2
+  *  We used the Express render method to respond to requests by sending back a template, along with an object containing the data the template needs. 
+  *  We then used EJS to render this data to our web page. 
+  *  We used Express route parameters to pass data from our frontend to our backend via the request url. 
+  *  Finally, we created a partial template for our header so that we can have the code for it in one location, but render it on multiple pages
+  *** NOTE 3 - 5
+  */
 
