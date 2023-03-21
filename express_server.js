@@ -32,10 +32,15 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars); // passing the templateVars object to the template called "urls_index"
 });   
 
+// Route handler which renders the new template urls_show. Refer to Note 2.
+app.get("/urls/:id", (req, res) => {
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] }; 
+  res.render("urls_show", templateVars);
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
 
 /*** NOTE 1
  * Browse to http://localhost:8080/urls , it will be a blank page right now because there's no content as we haven't created the template yet
@@ -44,3 +49,10 @@ app.listen(PORT, () => {
  * Using the <%= %> syntax, we tell EJS that we want the result of this code to show up on our page.
  * Use <% %> if we want to run some code without displaying on the page (ie. conditional statements)
  */
+
+ /*** NOTE 2
+  * We are adding another page to display a single URL and its shortened form. The end point for such a page will be in the format /urls/:id.
+  * The : in front of id indicates that id is a route parameter. This means that the value in this part of the url will be available in the req.params object.
+  * Use the id from the route parameter to lookup it's associated longURL from the urlDatabase
+  * Filled out the urls_show.ejs template to display the long URL and its shortened form. Also included a link (href="#") for creating a new url.
+  */
