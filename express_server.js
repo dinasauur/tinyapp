@@ -5,8 +5,8 @@ const PORT = 8080;                         // Define our base URL as http:\\loca
 
 app.set("view engine", "ejs");             // This tells the Express app to use EJS as its templating engine
 
-// Generate a random short URL ID to be used for when the browser submits a post request. Refer to Note 5. 
-function generateRandomString() {
+// Generate a random short URL ID to be used for when the browser submits a post request. Refer to Note 5.
+const generateRandomString = () => {
   return Math.random().toString(36).slice(2, 8);
 };
 
@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 });
 
 // Handler code on additional endpoints.
-// res.json sends a JSON response => expect to see a JSON string representing the entire urlDatabase object 
+// res.json sends a JSON response => expect to see a JSON string representing the entire urlDatabase object
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -45,9 +45,9 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-// IMPORTANT WARNING - The order of route definitions matters! Refer to Note 3. 
+// IMPORTANT WARNING - The order of route definitions matters! Refer to Note 3.
 
-// Route handler that will match the POST request. Refer to end of Note 4 and Note 5. 
+// Route handler that will match the POST request. Refer to end of Note 4 and Note 5.
 app.post("/urls", (req, res) => {
   console.log(req.body);                    // Log the POST request body to the console
   const newID = generateRandomString();     // called the generateRandomString funciton created above to create newID
@@ -55,17 +55,31 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newID}`);           // Tell browser to go to a new page that shows them the new short url they created
 });
 
-// Route handler which renders the new template urls_show. Refer to Note 2. 
+// Route handler which renders the new template urls_show. Refer to Note 2.
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+
+  const longURL = urlDatabase[req.params.id];
+
+  if (!longURL) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
+    return res.send("Error. URL does not exist.");
+  }
+
+  const templateVars = { id: req.params.id, longURL };
+
   res.render("urls_show", templateVars);
 });
 
-// Route handler that redirects any request to /u/:id to its longURL. Example - http://localhost:8080/u/b2xVn2 redirects to LHL website.
+// Route handler that redirects any request to /u/:id to its longURL. Refer to end of Note 5.
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
+
+  if (!longURL) {                                               // If longURL does not exist in database, output error
+    return res.send(`That's not the correct ID. Try again.`);
+  }
+
   res.redirect(longURL);
 });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -83,19 +97,20 @@ app.listen(PORT, () => {
  *  We are adding another page to display a single URL and its shortened form. The end point for such a page will be in the format /urls/:id.
  *  The : in front of id indicates that id is a route parameter. This means that the value in this part of the url will be available in the req.params object.
  *  Use the id from the route parameter to lookup it's associated longURL from the urlDatabase
- *  Filled out the urls_show.ejs template to display the long URL and its shortened form. Also included a link (href="#") for creating a new url.
+ *  Filled out the urls_show.ejs template to display the long URL and its shortened form.
+ *  Added if statement for error.
  */
 
-/*** NOTE 3 
+/*** NOTE 3
  *  The GET /urls/new route needs to be defined before the GET /urls/:id route. Because routes defined earlier will take precedence.
  *  So, if we place this route after the /urls/:id definition, any calls to /urls/new will be handled by app.get("/urls/:id", ...) because Express will think that new is a route parameter
  *  A good rule of thumb to follow is that routes should be ordered from most specific to least specific.
- * 
+ *
  **  VISUALIZE HOW THE NEW GET ROUTE IS USED
  *     // Browser //                                                      // Server //
  *  1. Browser requests new url form    ->    2. GET/urls/new     ->    3. Server finds the "urls_new" template, generates the HTML, and sends it back to the browser
  *  5. Browser renders the HTML form received from server         <-    4. 200 ok
- * 
+ *
  *  When we navigate to /urls/new in our browser, our browser makes a GET request to our newly created route.
  *  Our sever responds by finding urls_new template, generating the HTML, and sending it back to the browser.
  *  The browser then renders this HTML.
@@ -104,16 +119,16 @@ app.listen(PORT, () => {
 /*** NOTE 4
  *  When our browser submits a POST request, the data in the request body is sent as a Buffer. While this data type is great for transmitting data, it's not readable for us humans.
  *  To make this data readable, we will need to use another piece of middleware which will translate, or parse the body. This feature is part of Express.
- *  The body-parser library will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body. 
+ *  The body-parser library will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body.
  *  (If you find that req.body is undefined, it may be that the body-parser middleware is not being run correctly.)
  *  The data in the input field will be avaialbe to us in the req.body.longURL variable, which we can store in our urlDatabase object
- * 
+ *
  *** EXPLANATION OF WHAT THE POST HANDLER CODE DOES
  * After our browser renders our new URL form, the user populates the form with a longURL and presses submit.
  * Our browser sends a POST request to our server
  * Our server logs the request body to the console, then responds with 200 OK.
  * Our browser renders the "Ok" message.
- * 
+ *
  *** SIDE NOTE
  * We'll be able to see the new form in the browser at /urls/new. How? This is what we did in the form (in urls_new template) ->
  * a) The form has an action attribute set to /urls
@@ -121,26 +136,31 @@ app.listen(PORT, () => {
  * c) The form has one named input, with the name attribute set to longURL
  * This means that when this form is submitted, it will make a request to POST /urls, and the body will contain one URL-encoded name-value pair with the name longURL.
  *
- * Note that the input has been parsed into a JS object, where longURL is the key; we specified this key using the input attribute name. The value is the content from the input field. 
+ * Note that the input has been parsed into a JS object, where longURL is the key; we specified this key using the input attribute name. The value is the content from the input field.
  * Input looked like this -> { longURL: '' }, without the body-parser middleware, the input would have looked like longURL=http%3A%2F%google.com
  */
 
 /*** NOTE 5
  * GENERATE A RANDOM SHORT URL ID - returns a string of 6 random alphanumeric characters to be returned back to the browser. To do so, update the POST handler.
  *** EXPLANATION OF THE POST HANDLER AFTER CHANGES
- * After we generate our new short URL id, we add it to our database.
- * Our server then responds with a redirect to /urls/:id
- * Our browser then makes a GET request to /urls/:id
+ * We generated a new short URL id and then redirected the user to this new url.
+ * We learned that when the browser receives a redirection response, it does another GET request to the url in the response
  * Using the id, our server looks up the longURL from the database, sends the id and longURL to the urls_show template, generates the HTML, and then sends this HTML back to the browser
  * The browser then renders this HTML
+ *
+ *** EXPLANATION OF NEW ROUTE HANDLER
+ * We created a new route for handling our redirect links where requests to '/u/:id' is redirected to its actual longURL
+ * This route obtained the id from the route parameters, looked up the corresponding longURL from our urlDatabase, and responded with a redirect to the longURL
+ * We tested that our new route is working as expected by making requests to it with the command line tool curl and our browser
+ * Added an if statement for errors
  */
 
 /*** NOTE 6 - WHAT IS EXPRESS?
 * Express.js is a Node js web application server framework, which is specifically designed for building single-page, multi-page, and hybrid web applications.
 * It has become the standard server framework for node.js. Express is the backend part of something known as the MEAN stack.
-* The MEAN is a free and open-source JavaScript software stack for building dynamic web sites and web applications which has the following components; 
-* 1) MongoDB – The standard NoSQL database 
-* 2) Express.js – The default web applications framework 
+* The MEAN is a free and open-source JavaScript software stack for building dynamic web sites and web applications which has the following components;
+* 1) MongoDB – The standard NoSQL database
+* 2) Express.js – The default web applications framework
 * 3) Angular.js – The JavaScript MVC framework used for web applications
 * 4) Node.js – Framework used for scalable server-side and networking applications.
 * The Express.js framework makes it very easy to develop an application which can be used to handle multiple types of requests like the GET, PUT, and POST and DELETE requests.
@@ -151,15 +171,15 @@ app.listen(PORT, () => {
 
 /*** CONCLUSION
 *** NOTE 1 - 2
-*  We used the Express render method to respond to requests by sending back a template, along with an object containing the data the template needs. 
-*  We then used EJS to render this data to our web page. 
-*  We used Express route parameters to pass data from our frontend to our backend via the request url. 
+*  We used the Express render method to respond to requests by sending back a template, along with an object containing the data the template needs.
+*  We then used EJS to render this data to our web page.
+*  We used Express route parameters to pass data from our frontend to our backend via the request url.
 *  Finally, we created a partial template for our header so that we can have the code for it in one location, but render it on multiple pages
 *** NOTE 3 - 5
 *  We first created a form (urls_new.ejs) that allowed a user to input a longURL and send that data to our API via a POST request
-*  We then created a route that would render this form when the user visited /urls/new. 
+*  We then created a route that would render this form when the user visited /urls/new.
 *  We also created a route to handle the POST requests from our form. We used the Express library's body parsing middleware to make the POST request body human readable
-*  We generated a random string to serve as our shortURL.
-*
+*  We generated a random string to serve as our shortURL and saved that in the database alongside the longURL submitted by the browser
+*  We created a new route to handle redirect links where the short url redirects to the longURL
 */
 
