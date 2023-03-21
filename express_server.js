@@ -56,3 +56,10 @@ app.listen(PORT, () => {
   * Use the id from the route parameter to lookup it's associated longURL from the urlDatabase
   * Filled out the urls_show.ejs template to display the long URL and its shortened form. Also included a link (href="#") for creating a new url.
   */
+
+ /*** CONCLUSION
+  * We used the Express render method to respond to requests by sending back a template, along with an object containing the data the template needs. 
+  * We then used EJS to render this data to our web page. 
+  * We used Express route parameters to pass data from our frontend to our backend via the request url. 
+  * Finally, we created a partial template for our header so that we can have the code for it in one location, but render it on multiple pages
+  */
