@@ -10,6 +10,9 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// This needs to come before all the routes. Why? 
+app.use(express.urlencoded({ extended: true }));
+
 // Handler code on the root path '/'
 app.get("/", (req, res) => {
   res.send("Hello!");
