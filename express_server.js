@@ -80,11 +80,20 @@ app.get('/u/:id', (req, res) => {
   res.redirect(longURL);
 });
 
-// Created a route handler to implement a DELETE operation to remove existing shortened URLs from our database
+// Route handler to implement a DELETE operation to remove existing shortened URLs from our database
 app.post('/urls/:id/delete', (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
+
+// Route handler to implement an UPDATE operation --> Click Edit button, take browser to /urls/:id so in template, it should be GET for the edit button. After browser submits the new URL, redirect browser back to /urls
+app.post('/urls/:id', (req, res) => {
+  const newLongURL = req.body.longURL;
+  const id = req.params.id
+  urlDatabase[id] = newLongURL;
+  res.redirect('/urls');
+});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
