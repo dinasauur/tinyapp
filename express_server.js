@@ -1,9 +1,9 @@
-const { Template } = require("ejs");       // Import the ejs template engine  Read Note 6
-const express = require("express");        // Import the express library      Read Note 6
+const { Template } = require('ejs');       // Import the ejs template engine  Read Note 6
+const express = require('express');        // Import the express library      Read Note 6
 const app = express();                     // Define our app as an instance of express
 const PORT = 8080;                         // Define our base URL as http:\\localhost:8080
 
-app.set("view engine", "ejs");             // This tells the Express app to use EJS as its templating engine
+app.set('view engine', 'ejs');             // This tells the Express app to use EJS as its templating engine
 
 // Generate a random short URL ID to be used for when the browser submits a post request. Refer to Note 5.
 const generateRandomString = () => {
@@ -11,44 +11,44 @@ const generateRandomString = () => {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  'b2xVn2': 'http://www.lighthouselabs.ca',
+  '9sm5xK': 'http://www.google.com'
 };
 
 // This needs to come before all the routes. Why? Refer to Note 4.
 app.use(express.urlencoded({ extended: true }));
 
 // Handler code on the root path '/'
-app.get("/", (req, res) => {
-  res.send("Hello!");
+app.get('/', (req, res) => {
+  res.send(`Hello!`);
 });
 
 // Handler code on additional endpoints.
 // res.json sends a JSON response => expect to see a JSON string representing the entire urlDatabase object
-app.get("/urls.json", (req, res) => {
+app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
 // Handler code on sending HTML, which would be rendered in the client browser
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+app.get('/hello', (req, res) => {
+  res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
 // Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
-app.get("/urls", (req, res) => {
+app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase }; // templateVars object contains the urlDatabase under the key urls
-  res.render("urls_index", templateVars);     // passing the templateVars object to the template called "urls_index"
+  res.render('urls_index', templateVars);     // passing the templateVars object to the template called "urls_index"
 });
 
 // Route handler to render the urls_new.ejs template in the browser to present the form to the user
-app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+app.get('/urls/new', (req, res) => {
+  res.render('urls_new');
 });
 
 // IMPORTANT WARNING - The order of route definitions matters! Refer to Note 3.
 
 // Route handler that will match the POST request. Refer to end of Note 4 and Note 5.
-app.post("/urls", (req, res) => {
+app.post('/urls', (req, res) => {
   console.log(req.body);                    // Log the POST request body to the console
   const newID = generateRandomString();     // called the generateRandomString funciton created above to create newID
   urlDatabase[newID] = req.body.longURL;    // Save the longURL and short URL id to the urlDatabase
@@ -56,21 +56,21 @@ app.post("/urls", (req, res) => {
 });
 
 // Route handler which renders the new template urls_show. Refer to Note 2.
-app.get("/urls/:id", (req, res) => {
+app.get('/urls/:id', (req, res) => {
 
   const longURL = urlDatabase[req.params.id];
 
   if (!longURL) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
-    return res.send("Error. URL does not exist.");
+    return res.send(`Error. URL does not exist.`);
   }
 
   const templateVars = { id: req.params.id, longURL };
 
-  res.render("urls_show", templateVars);
+  res.render('urls_show', templateVars);
 });
 
 // Route handler that redirects any request to /u/:id to its longURL. Refer to end of Note 5.
-app.get("/u/:id", (req, res) => {
+app.get('/u/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
   if (!longURL) {                                               // If longURL does not exist in database, output error
@@ -80,6 +80,11 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+// Created a route handler to implement a DELETE operation to remove existing shortened URLs from our database
+app.post('/urls/:id/delete', (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect('/urls');
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -97,6 +102,7 @@ app.listen(PORT, () => {
  *  We are adding another page to display a single URL and its shortened form. The end point for such a page will be in the format /urls/:id.
  *  The : in front of id indicates that id is a route parameter. This means that the value in this part of the url will be available in the req.params object.
  *  Use the id from the route parameter to lookup it's associated longURL from the urlDatabase
+ * 
  *  Filled out the urls_show.ejs template to display the long URL and its shortened form.
  *  Added if statement for error.
  */
