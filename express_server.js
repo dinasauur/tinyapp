@@ -3,6 +3,7 @@ const express = require('express');        // Import the express library      Re
 const app = express();                     // Define our app as an instance of express
 const PORT = 8080;                         // Define our base URL as http:\\localhost:8080
 
+const cookieParser = require('cookie-parser'); // Import the cookie-parser
 app.set('view engine', 'ejs');             // This tells the Express app to use EJS as its templating engine
 
 // Generate a random short URL ID to be used for when the browser submits a post request. Refer to Note 5.
@@ -17,6 +18,7 @@ const urlDatabase = {
 
 // This needs to come before all the routes. Why? Refer to Note 4.
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Handler code on the root path '/'
 app.get('/', (req, res) => {
@@ -72,7 +74,6 @@ app.get('/urls/:id', (req, res) => {
 // Route handler that redirects any request to /u/:id to its longURL. Refer to end of Note 5.
 app.get('/u/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id];
-
   if (!longURL) {                                               // If longURL does not exist in database, output error
     return res.send(`That's not the correct ID. Try again.`);
   }
@@ -89,8 +90,20 @@ app.post('/urls/:id/delete', (req, res) => {
 // Route handler to implement an UPDATE operation --> Click Edit button, take browser to /urls/:id so in template, it should be GET for the edit button. After browser submits the new URL, redirect browser back to /urls
 app.post('/urls/:id', (req, res) => {
   const newLongURL = req.body.longURL;
-  const id = req.params.id
+  const id = req.params.id;
+
   urlDatabase[id] = newLongURL;
+
+  res.redirect('/urls');
+});
+
+
+// Login Route -> set cookie
+app.post('/login', (req, res) => {
+
+  const value = req.body.username
+  res.cookie('username', value);
+
   res.redirect('/urls');
 });
 
