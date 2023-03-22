@@ -38,13 +38,17 @@ app.get('/hello', (req, res) => {
 
 // Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase }; // templateVars object contains the urlDatabase under the key urls
-  res.render('urls_index', templateVars);     // passing the templateVars object to the template called "urls_index"
+  const templateVars = { 
+    urls: urlDatabase,                        // templateVars object contains the urlDatabase under the key urls
+    username: req.cookies.username            // To display the username, we need to pass the username to EJS template so it knows if user is logged and what the username is
+  }; 
+  res.render('urls_index', templateVars);     // rendering the templateVars in ejs files
 });
 
 // Route handler to render the urls_new.ejs template in the browser to present the form to the user
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = { username: req.cookies.username }
+  res.render('urls_new', templateVars);
 });
 
 // IMPORTANT WARNING - The order of route definitions matters! Refer to Note 3.
@@ -66,7 +70,7 @@ app.get('/urls/:id', (req, res) => {
     return res.send(`Error. URL does not exist.`);
   }
 
-  const templateVars = { id: req.params.id, longURL };
+  const templateVars = { id: req.params.id, longURL, username: req.cookies.username };
 
   res.render('urls_show', templateVars);
 });
@@ -97,8 +101,14 @@ app.post('/urls/:id', (req, res) => {
   res.redirect('/urls');
 });
 
+// Login Route - Display the login form (get) - Refer to Note 7
+app.get('/login', (req, res) => {
+  const templateVars = { username: null }; // set to null because there is none since user hasn't logged in yet
 
-// Login Route -> set cookie
+  res.render('login', templateVars);
+});
+
+// Login Route -> Handle the login (post) and set cookies
 app.post('/login', (req, res) => {
 
   const value = req.body.username
@@ -106,6 +116,7 @@ app.post('/login', (req, res) => {
 
   res.redirect('/urls');
 });
+
 
 
 app.listen(PORT, () => {
@@ -211,3 +222,9 @@ app.listen(PORT, () => {
 *  We created a new route to handle redirect links where the short url redirects to the longURL
 */
 
+/*** NOTE 7 - COOKIES and DISPLAY USERNAME
+ * Username won't show yet just because a route was set up. We need to modify existing routes on the server in order to rener templates properly. 
+ * This can be done by passing username to each EJS template so that it knows if the user is logged in, and what their username is.
+ * Pass in the username to all views that include the _header.ejs partial
+ * And modify the _header.ejs partial to display the passed-in username next to the form.
+ */
