@@ -16,10 +16,18 @@
         </div>
       </div>
     </div>
-    <form class="form-inline" method="POST" action="/login">
-      <input / class="form-control" type="text" name="username" placeholder="Username"
-        style="width: 250px; margin: 1em">
-      <button type="submit" class="btn btn-outline-dark">Login</button>
-    </form>
+    <div>
+<!-- Added below conditional to display the passed-in username next to the form. If username exists, display "hello username" and a logout button, otherwise display the login button and have user send request to submit login form.-->
+      <% if (username) { %>
+        <h4>Hello, <%= username %></h4>
+
+        <% } else { %>
+          <form class="form-inline" method="POST" action="/login">
+            <input class="form-control" type="text" name="username" placeholder="Username"
+              style="width: 250px; margin: 1em">
+            <button type="submit" class="btn btn-outline-dark">Login</button>
+          </form>
+          <% } %>
+    </div>
   </nav>
 </header>
