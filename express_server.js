@@ -18,6 +18,15 @@ const urlDatabase = {
 
 const usersDatabase = {};
 
+const findUserbyEmail = (email) => {
+  for (let userID in usersDatabase) {
+    if (email === usersDatabase[userID].email) {
+      return usersDatabase[userID];
+    }
+  }
+  return false;
+};
+
 // This needs to come before all the routes. Why? Refer to Note 4.
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -129,7 +138,7 @@ app.post('/login', (req, res) => {
 
 // Logout Route 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
@@ -149,6 +158,19 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {  
   // extract info
   const { email, password } = req.body;
+
+  // validation => does that user already exist in the userDatabase
+  const user = findUserbyEmail(email);
+
+  if (user) {
+    res.status(400).send(`Erroe 400: Sorry, that user already exists!`);
+    return;
+  }
+
+  // check if email or password are empty strings => if they are, respond with error code
+  if (email === '' || password === '') {
+    res.status(400).send(`Error 400: Oops! You left some fields empty. Try again!`)
+  }
 
   // create a new user in the user db -> provide a user id
   const userID = generateRandomString();
