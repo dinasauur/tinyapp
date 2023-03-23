@@ -68,6 +68,7 @@ app.get('/urls', (req, res) => {
 // Route handler to render the urls_new.ejs template in the browser to present the form to the user
 app.get('/urls/new', (req, res) => {
   const userID = req.cookies['user_id'];
+
   const user = usersDatabase[userID];
   const templateVars = { user: user };
   res.render('urls_new', templateVars);
@@ -129,6 +130,11 @@ app.post('/urls/:id', (req, res) => {
 // Login Route - Display the login form (get) - Refer to Note 7
 app.get('/login', (req, res) => {
   const userID = req.cookies['user_id'];
+
+  if (userID) {
+    return res.redirect('/urls');
+  }
+
   const user = usersDatabase[userID];
 
   const templateVars = { user: user };
@@ -138,12 +144,18 @@ app.get('/login', (req, res) => {
 
 // Login Route -> Handle the login (post) and set cookies
 app.post('/login', (req, res) => {
+  // extract the form information
   const { email, password } = req.body;
+
+  //// validate username and password
+  // retrieve the user from the userDatabase with their email
   const user = findUserbyEmail(email)
 
+  // check passwords
   if (user && user.password === password) {
+    // set cookie with user id
     res.cookie('user_id', user.id);
-
+    
     res.redirect('/urls');
   }
   return res.status(403).send(`Error 403: Something went wrong. Please try again with the correct login information.`)
@@ -155,15 +167,18 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
-// Register Routes
+//// Register Routes
 
 // Display the Register form
 app.get('/register', (req, res) => {
   const userID = req.cookies['user_id'];
+
+  if (userID) {
+    return res.redirect('/urls');
+  }
+
   const user = usersDatabase[userID];
-
   const templateVars = { user: user };
-
   res.render('register', templateVars);
 });
 
@@ -176,7 +191,7 @@ app.post('/register', (req, res) => {
   const user = findUserbyEmail(email);
 
   if (user) {
-    res.status(400).send(`Erroe 400: Sorry, that user already exists!`);
+    res.status(400).send(`Error 400: Sorry, that user already exists!`);
     return;
   }
 
@@ -201,7 +216,6 @@ app.post('/register', (req, res) => {
   // redirect users to /urls page
   res.redirect('/urls');
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
