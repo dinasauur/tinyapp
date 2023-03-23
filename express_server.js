@@ -122,7 +122,10 @@ app.post('/urls/:id', (req, res) => {
 
 // Login Route - Display the login form (get) - Refer to Note 7
 app.get('/login', (req, res) => {
-  const templateVars = { username: null }; // set to null because there is none since user hasn't logged in yet
+  const userID = req.cookies['user_id'];
+  const user = usersDatabase[userID];
+
+  const templateVars = { user: user };
 
   res.render('login', templateVars);
 });
