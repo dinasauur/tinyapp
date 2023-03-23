@@ -16,7 +16,13 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
-const usersDatabase = {};
+const usersDatabase = {
+  '6gbjcg': {
+    id: '6gbjcg',
+    email: 'pokemon@catchemall.com',
+    password: 'hellopika'
+  }
+};
 
 const findUserbyEmail = (email) => {
   for (let userID in usersDatabase) {
@@ -132,11 +138,15 @@ app.get('/login', (req, res) => {
 
 // Login Route -> Handle the login (post) and set cookies
 app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = findUserbyEmail(email)
 
-  const value = req.body.username;
-  res.cookie('username', value);
+  if (user && user.password === password) {
+    res.cookie('user_id', user.id);
 
-  res.redirect('/urls');
+    res.redirect('/urls');
+  }
+  return res.status(403).send(`Error 403: Something went wrong. Please try again with the correct login information.`)
 });
 
 // Logout Route 
@@ -187,6 +197,7 @@ app.post('/register', (req, res) => {
   // store the user id in the cookies
   res.cookie('user_id', userID);
 
+  console.log(usersDatabase);
   // redirect users to /urls page
   res.redirect('/urls');
 });
