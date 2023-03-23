@@ -26,12 +26,12 @@
         </form>
         <% } else { %>
           <!-- logout state-->
-          <form class="form-inline" method="POST" action="/login">
-            <input class="form-control" type="text" name="username" placeholder="Username"
-              style="width: 250px; margin: 1em">
+          <form class="form-inline" action="/login">
             <button type="submit" class="btn btn-outline-dark">Login</button>
           </form>
-          <a href="/register">Register</a>
+          <form class="form-inline" action="/register">
+            <button type="submit" class="btn btn-outline-dark">Register</button>
+          </form>
           <% } %>
     </div>
   </nav>
