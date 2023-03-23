@@ -123,6 +123,15 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
+// Register Routes
+
+// Display the Register form
+app.get('/register', (req, res) => {
+  let templateVars = { username: null };
+
+  res.render('register', templateVars);
+})
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
