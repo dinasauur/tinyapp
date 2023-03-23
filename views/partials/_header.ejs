@@ -17,7 +17,7 @@
       </div>
     </div>
     <div>
-      <!-- Added below conditional to display the passed-in username next to the form. If username exists, display "hello username" and a logout button, otherwise display the login button and have user send request to submit login form.-->
+      <!-- Added below conditional to display the passed-in user next to the form. If user exists, display "hello user.email" and a logout button, otherwise display the login and register-->
       <% if (user) { %>
         <!-- login state -->
         <h5>Hello, <%= user.email %>!</h5>
@@ -26,13 +26,13 @@
         </form>
         <% } else { %>
           <!-- logout state-->
-          <form class="form-inline" action="/login">
-            <button type="submit" class="btn btn-outline-dark">Login</button>
-          </form>
-          <form class="form-inline" action="/register">
-            <button type="submit" class="btn btn-outline-dark">Register</button>
-          </form>
-          <% } %>
-    </div>
+          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+              <a class="nav-item nav-link" href="/login">Login</a>
+              <a class="nav-item nav-link" href="/register">Register</a>
+            </div>
+
+            <% } %>
+          </div>
   </nav>
 </header>
