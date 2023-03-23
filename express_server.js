@@ -16,6 +16,8 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
+const usersDatabase = {};
+
 // This needs to come before all the routes. Why? Refer to Note 4.
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -38,16 +40,16 @@ app.get('/hello', (req, res) => {
 
 // Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
 app.get('/urls', (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     urls: urlDatabase,                        // templateVars object contains the urlDatabase under the key urls
     username: req.cookies.username            // To display the username, we need to pass the username to EJS template so it knows if user is logged and what the username is
-  }; 
+  };
   res.render('urls_index', templateVars);     // rendering the templateVars in ejs files
 });
 
 // Route handler to render the urls_new.ejs template in the browser to present the form to the user
 app.get('/urls/new', (req, res) => {
-  const templateVars = { username: req.cookies.username }
+  const templateVars = { username: req.cookies.username };
   res.render('urls_new', templateVars);
 });
 
@@ -111,7 +113,7 @@ app.get('/login', (req, res) => {
 // Login Route -> Handle the login (post) and set cookies
 app.post('/login', (req, res) => {
 
-  const value = req.body.username
+  const value = req.body.username;
   res.cookie('username', value);
 
   res.redirect('/urls');
@@ -130,7 +132,29 @@ app.get('/register', (req, res) => {
   let templateVars = { username: null };
 
   res.render('register', templateVars);
-})
+});
+
+// Registration Handler
+app.post('/register', (req, res) => {  
+  // extract body
+  const { email, password } = req.body;
+
+  // create a new user in the user db -> provide a user id
+  const userID = generateRandomString();
+
+  usersDatabase[userID] = {
+    id: userID,
+    email: email,
+    password: password,
+  };
+
+  // store the user id in the cookies
+  res.cookie('user_id', userID);
+
+  // redirect users to /urls page
+  res.redirect('/urls');
+});
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
