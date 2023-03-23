@@ -40,16 +40,21 @@ app.get('/hello', (req, res) => {
 
 // Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
 app.get('/urls', (req, res) => {
+  const userID = req.cookies['user_id'];
+  const user = usersDatabase[userID];
+
   const templateVars = {
     urls: urlDatabase,                        // templateVars object contains the urlDatabase under the key urls
-    username: req.cookies.username            // To display the username, we need to pass the username to EJS template so it knows if user is logged and what the username is
+    user: user,                               // To display the username, we need to pass the username to EJS template so it knows if user is logged and what the username is
   };
   res.render('urls_index', templateVars);     // rendering the templateVars in ejs files
 });
 
 // Route handler to render the urls_new.ejs template in the browser to present the form to the user
 app.get('/urls/new', (req, res) => {
-  const templateVars = { username: req.cookies.username };
+  const userID = req.cookies['user_id'];
+  const user = usersDatabase[userID];
+  const templateVars = { user: user };
   res.render('urls_new', templateVars);
 });
 
@@ -68,11 +73,14 @@ app.get('/urls/:id', (req, res) => {
 
   const longURL = urlDatabase[req.params.id];
 
+  const userID = req.cookies['user_id'];
+  const user = usersDatabase[userID];
+
   if (!longURL) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
     return res.send(`Error. URL does not exist.`);
   }
 
-  const templateVars = { id: req.params.id, longURL, username: req.cookies.username };
+  const templateVars = { id: req.params.id, longURL, user: user };
 
   res.render('urls_show', templateVars);
 });
@@ -129,14 +137,17 @@ app.post('/logout', (req, res) => {
 
 // Display the Register form
 app.get('/register', (req, res) => {
-  let templateVars = { username: null };
+  const userID = req.cookies['user_id'];
+  const user = usersDatabase[userID];
+
+  const templateVars = { user: user };
 
   res.render('register', templateVars);
 });
 
 // Registration Handler
 app.post('/register', (req, res) => {  
-  // extract body
+  // extract info
   const { email, password } = req.body;
 
   // create a new user in the user db -> provide a user id
