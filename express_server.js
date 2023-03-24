@@ -1,16 +1,16 @@
-const express = require('express');        // Import the express library      Read Note 6
-const bcrypt = require("bcryptjs");        // library that helps with hashing passwords
-const cookieSession = require('cookie-session')
+const express = require('express');                               // Import the express library
+const bcrypt = require("bcryptjs");                               // library that helps with hashing passwords
+const cookieSession = require('cookie-session')                   // Stores the session data on the client within a cookie
 const { usersDatabase, urlDatabase } = require("./database")
 const {
   generateRandomString,
   urlsForUser,
   findUserbyEmail
 } = require("./helpers")
-const app = express();                     // Define our app as an instance of express
-const PORT = 8080;                         // Define our base URL as http:\\localhost:8080
+const app = express();                                            // Define our app as an instance of express
+const PORT = 8080;
 
-app.set('view engine', 'ejs');             // This tells the Express app to use EJS as its templating engine
+app.set('view engine', 'ejs');                                    // This tells the Express app to use EJS as its templating engine
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2'],
@@ -18,9 +18,7 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
-
-// This needs to come before all the routes. Why? Refer to Note 4.
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));                  // Built-in middleware in Express. It parses the incoming request with urlencoded payloads
 
 // Handler code on the root path '/'
 app.get('/', (req, res) => {
@@ -31,7 +29,7 @@ app.get('/', (req, res) => {
   }
 });
 
-// Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
+// Route handler code for "/urls"
 app.get('/urls', (req, res) => {
   const userID = req.session.user_id;
 
@@ -42,10 +40,26 @@ app.get('/urls', (req, res) => {
   const user = usersDatabase[userID];
 
   const templateVars = {
-    urls: urlsForUser(userID, urlDatabase),                // templateVars object contains the urlDatabase under the key urls
-    user: user,                               // To display the username, we need to pass the username to EJS template so it knows if user is logged and what the username is
+    urls: urlsForUser(userID, urlDatabase),
+    user: user,
   };
-  res.render('urls_index', templateVars);     // rendering the templateVars in ejs files
+  res.render('urls_index', templateVars);
+});
+
+// Route handler that will match the POST request. Refer to end of Note 4 and Note 5.
+app.post('/urls', (req, res) => {
+  const userID = req.session.user_id;
+
+  if (!userID) {
+    return res.send(`Sorry, you do not have access to edit this. Please login in first.`)
+  }
+
+  const newID = generateRandomString();
+  urlDatabase[newID] = {
+    longURL: req.body.longURL,
+    userID
+  };   
+  res.redirect(`/urls/${newID}`);
 });
 
 // Route handler to render the urls_new.ejs template in the browser to present the form to the user
@@ -61,26 +75,7 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 });
 
-// IMPORTANT WARNING - The order of route definitions matters! Refer to Note 3.
-
-// Route handler that will match the POST request. Refer to end of Note 4 and Note 5.
-app.post('/urls', (req, res) => {
-  const userID = req.session.user_id;
-
-  // if user is not logged in, this route should response with that message. Refer to Note 5. 
-  if (!userID) {
-    return res.send(`Sorry, you do not have access to edit this. Please login in first.`)
-  }
-
-  const newID = generateRandomString();     // called the generateRandomString funciton created above to create newID
-  urlDatabase[newID] = {
-    longURL: req.body.longURL,              // Save the longURL and short URL id to the urlDatabase
-    userID
-  };   
-  res.redirect(`/urls/${newID}`);           // Tell browser to go to a new page that shows them the new short url they created
-});
-
-// Route handler which renders the new template urls_show. Refer to Note 2.
+// Route handler which renders the new template urls_show.
 app.get('/urls/:id', (req, res) => {
   const userID = req.session.user_id;
   
@@ -88,7 +83,7 @@ app.get('/urls/:id', (req, res) => {
     return res.redirect("/login")
   }
 
-  if (!urlDatabase[req.params.id]) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
+  if (!urlDatabase[req.params.id]) {
     return res.send(`Error. URL does not exist.`);
   }
   
@@ -104,17 +99,17 @@ app.get('/urls/:id', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
-// Route handler that redirects any request to /u/:id to its longURL. Refer to end of Note 5.
+// Route handler that redirects any request to /u/:id to its longURL.
 app.get('/u/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id];
-  if (!longURL) {                                               // If longURL does not exist in database, output error
+  if (!longURL) {
     return res.send(`That's not the correct ID. Try again.`);
   }
 
   res.redirect(urlDatabase[req.params.id].longURL);
 });
 
-// Route handler to implement a DELETE operation to remove existing shortened URLs from our database
+// Route handler to implement a DELETE operation
 app.post('/urls/:id/delete', (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
@@ -123,7 +118,7 @@ app.post('/urls/:id/delete', (req, res) => {
   if (!userID) {
     return res.send(`Please log in first.`)
   }
-  if (!longURL) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
+  if (!longURL) {
     return res.send(`Error. URL does not exist.`);
   }
   
@@ -134,7 +129,7 @@ app.post('/urls/:id/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-// Route handler to implement an UPDATE operation --> Click Edit button, take browser to /urls/:id so in template, it should be GET for the edit button. After browser submits the new URL, redirect browser back to /urls
+// Route handler to implement an UPDATE operation
 app.post('/urls/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
@@ -143,7 +138,7 @@ app.post('/urls/:id', (req, res) => {
   if (!userID) {
     return res.send(`Please log in first.`)
   }
-  if (!longURL) {                                                    // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
+  if (!longURL) {
     return res.send(`Error. URL does not exist.`);
   }
   
@@ -159,7 +154,7 @@ app.post('/urls/:id', (req, res) => {
   res.redirect('/urls');
 });
 
-// Login Route - Display the login form (get) - Refer to Note 7
+// Login Route - Display the login form (get)
 app.get('/login', (req, res) => {
   const userID = req.session.user_id;
 
@@ -192,14 +187,15 @@ app.post('/login', (req, res) => {
     return res.status(403).send("Incorrect password")
   }
 
-  // set session with user id
+  // Set session with user id
   req.session.user_id = user.id;    
   res.redirect('/urls');
 });
 
 // Logout Route 
 app.post('/logout', (req, res) => {
-  req.session = null            // clear session 
+  // clear session and redirect
+  req.session = null;
   res.redirect('/urls');
 });
 
@@ -366,4 +362,9 @@ app.listen(PORT, () => {
  * This can be done by passing username to each EJS template so that it knows if the user is logged in, and what their username is.
  * Pass in the username to all views that include the _header.ejs partial
  * And modify the _header.ejs partial to display the passed-in username next to the form.
+ */
+
+/*** NOTE 8 - 
+ * Route handler to implement a DELETE operation to remove existing shortened URLs from our database
+ * If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
  */
