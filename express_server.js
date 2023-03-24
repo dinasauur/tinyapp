@@ -1,12 +1,12 @@
 const express = require('express');                               // Import the express library
 const bcrypt = require("bcryptjs");                               // library that helps with hashing passwords
-const cookieSession = require('cookie-session')                   // Stores the session data on the client within a cookie
-const { usersDatabase, urlDatabase } = require("./database")
+const cookieSession = require('cookie-session');                   // Stores the session data on the client within a cookie
+const { usersDatabase, urlDatabase } = require("./database");
 const {
   generateRandomString,
   urlsForUser,
   findUserbyEmail
-} = require("./helpers")
+} = require("./helpers");
 const app = express();                                            // Define our app as an instance of express
 const PORT = 8080;
 
@@ -17,15 +17,15 @@ app.use(cookieSession({
 
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+}));
 app.use(express.urlencoded({ extended: true }));                  // Built-in middleware in Express. It parses the incoming request with urlencoded payloads
 
 // Handler code on the root path '/'
 app.get('/', (req, res) => {
   if (req.session.user_id) {
-    res.redirect("/urls")
+    res.redirect("/urls");
   } else {
-    res.redirect("/login")
+    res.redirect("/login");
   }
 });
 
@@ -34,7 +34,7 @@ app.get('/urls', (req, res) => {
   const userID = req.session.user_id;
 
   if (!userID) {
-    return res.redirect("/login")
+    return res.redirect("/login");
   }
 
   const user = usersDatabase[userID];
@@ -51,14 +51,14 @@ app.post('/urls', (req, res) => {
   const userID = req.session.user_id;
 
   if (!userID) {
-    return res.send(`Sorry, you do not have access to edit this. Please login in first.`)
+    return res.send(`Sorry, you do not have access to edit this. Please login in first.`);
   }
 
   const newID = generateRandomString();
   urlDatabase[newID] = {
     longURL: req.body.longURL,
     userID
-  };   
+  };
   res.redirect(`/urls/${newID}`);
 });
 
@@ -69,7 +69,7 @@ app.get('/urls/new', (req, res) => {
   if (!userID) {
     return res.redirect('/login');
   }
-  
+
   const user = usersDatabase[userID];
   const templateVars = { user: user };
   res.render('urls_new', templateVars);
@@ -78,19 +78,19 @@ app.get('/urls/new', (req, res) => {
 // Route handler which renders the new template urls_show.
 app.get('/urls/:id', (req, res) => {
   const userID = req.session.user_id;
-  
+
   if (!userID) {
-    return res.redirect("/login")
+    return res.redirect("/login");
   }
 
   if (!urlDatabase[req.params.id]) {
     return res.send(`Error. URL does not exist.`);
   }
-  
+
   if (userID !== urlDatabase[req.params.id].userID) {
     return res.send(`Error. URL does not belong to you.`);
   }
-  
+
   const user = usersDatabase[userID];
   const longURL = urlDatabase[req.params.id].longURL;
 
@@ -114,14 +114,14 @@ app.post('/urls/:id/delete', (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
   const userID = req.session.user_id;
-  
+
   if (!userID) {
-    return res.send(`Please log in first.`)
+    return res.send(`Please log in first.`);
   }
   if (!longURL) {
     return res.send(`Error. URL does not exist.`);
   }
-  
+
   if (userID !== urlDatabase[req.params.id].userID) {
     return res.send(`Error. URL does not belong to you.`);
   }
@@ -134,18 +134,18 @@ app.post('/urls/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
   const userID = req.session.user_id;
-  
+
   if (!userID) {
-    return res.send(`Please log in first.`)
+    return res.send(`Please log in first.`);
   }
   if (!longURL) {
     return res.send(`Error. URL does not exist.`);
   }
-  
+
   if (userID !== urlDatabase[req.params.id].userID) {
     return res.send(`Error. URL does not belong to you.`);
   }
-  
+
   const newLongURL = req.body.longURL;
   const id = req.params.id;
 
@@ -174,25 +174,25 @@ app.post('/login', (req, res) => {
   // extract the form information
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(403).send("Please fill out the form")
+    return res.status(403).send("Please fill out the form");
   }
   // retrieve the user from the userDatabase with their email
-  const user = findUserbyEmail(email, usersDatabase) 
+  const user = findUserbyEmail(email, usersDatabase);
 
   if (!user) {
-    return res.status(403).send("No user found with that email")
+    return res.status(403).send("No user found with that email");
   }
 
   if (!bcrypt.compareSync(password, user.password)) {
-    return res.status(403).send("Incorrect password")
+    return res.status(403).send("Incorrect password");
   }
 
   // Set session with user id
-  req.session.user_id = user.id;    
+  req.session.user_id = user.id;
   res.redirect('/urls');
 });
 
-// Logout Route 
+// Logout Route
 app.post('/logout', (req, res) => {
   // clear session and redirect
   req.session = null;
@@ -215,7 +215,7 @@ app.get('/register', (req, res) => {
 });
 
 // Registration Handler
-app.post('/register', (req, res) => {  
+app.post('/register', (req, res) => {
   // extract info
   const { email, password } = req.body;
 
@@ -229,8 +229,8 @@ app.post('/register', (req, res) => {
 
   // check if email or password are empty strings => if they are, respond with error code
   if (email === '' || password === '') {
-    res.status(400).send(`Error 400: Oops! You left some fields empty. Try again!`)
-    return
+    res.status(400).send(`Error 400: Oops! You left some fields empty. Try again!`);
+    return;
   }
 
   // create a new user in the user db -> provide a user id
@@ -243,7 +243,7 @@ app.post('/register', (req, res) => {
   };
 
   // store the user id in the session
-  req.session.user_id = userID
+  req.session.user_id = userID;
 
   // redirect users to /urls page
   res.redirect('/urls');
@@ -252,119 +252,3 @@ app.post('/register', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-/*** NOTE 1
- *  Browse to http://localhost:8080/urls , it will be a blank page right now because there's no content as we haven't created the template yet
- **  HTML SYNTAX
- *  <h1><%= urls %></h1> // In our urls_index file, we can display the value stored in the templateVars object by calling the key urls
- *  Using the <%= %> syntax, we tell EJS that we want the result of this code to show up on our page.
- *  Use <% %> if we want to run some code without displaying on the page (ie. conditional statements)
- */
-
-/*** NOTE 2
- *  We are adding another page to display a single URL and its shortened form. The end point for such a page will be in the format /urls/:id.
- *  The : in front of id indicates that id is a route parameter. This means that the value in this part of the url will be available in the req.params object.
- *  Use the id from the route parameter to lookup it's associated longURL from the urlDatabase
- * 
- *  Filled out the urls_show.ejs template to display the long URL and its shortened form.
- *  Added if statement for error.
- */
-
-/*** NOTE 3
- *  The GET /urls/new route needs to be defined before the GET /urls/:id route. Because routes defined earlier will take precedence.
- *  So, if we place this route after the /urls/:id definition, any calls to /urls/new will be handled by app.get("/urls/:id", ...) because Express will think that new is a route parameter
- *  A good rule of thumb to follow is that routes should be ordered from most specific to least specific.
- *
- **  VISUALIZE HOW THE NEW GET ROUTE IS USED
- *     // Browser //                                                      // Server //
- *  1. Browser requests new url form    ->    2. GET/urls/new     ->    3. Server finds the "urls_new" template, generates the HTML, and sends it back to the browser
- *  5. Browser renders the HTML form received from server         <-    4. 200 ok
- *
- *  When we navigate to /urls/new in our browser, our browser makes a GET request to our newly created route.
- *  Our sever responds by finding urls_new template, generating the HTML, and sending it back to the browser.
- *  The browser then renders this HTML.
- */
-
-/*** NOTE 4
- *  When our browser submits a POST request, the data in the request body is sent as a Buffer. While this data type is great for transmitting data, it's not readable for us humans.
- *  To make this data readable, we will need to use another piece of middleware which will translate, or parse the body. This feature is part of Express.
- *  The body-parser library will convert the request body from a Buffer into string that we can read. It will then add the data to the req(request) object under the key body.
- *  (If you find that req.body is undefined, it may be that the body-parser middleware is not being run correctly.)
- *  The data in the input field will be avaialbe to us in the req.body.longURL variable, which we can store in our urlDatabase object
- *
- *** EXPLANATION OF WHAT THE POST HANDLER CODE DOES
- * After our browser renders our new URL form, the user populates the form with a longURL and presses submit.
- * Our browser sends a POST request to our server
- * Our server logs the request body to the console, then responds with 200 OK.
- * Our browser renders the "Ok" message.
- *
- *** SIDE NOTE
- * We'll be able to see the new form in the browser at /urls/new. How? This is what we did in the form (in urls_new template) ->
- * a) The form has an action attribute set to /urls
- * b) The form's method is set to POST
- * c) The form has one named input, with the name attribute set to longURL
- * This means that when this form is submitted, it will make a request to POST /urls, and the body will contain one URL-encoded name-value pair with the name longURL.
- *
- * Note that the input has been parsed into a JS object, where longURL is the key; we specified this key using the input attribute name. The value is the content from the input field.
- * Input looked like this -> { longURL: '' }, without the body-parser middleware, the input would have looked like longURL=http%3A%2F%google.com
- */
-
-/*** NOTE 5
- * GENERATE A RANDOM SHORT URL ID - returns a string of 6 random alphanumeric characters to be returned back to the browser. To do so, update the POST handler.
- *** EXPLANATION OF THE POST HANDLER AFTER CHANGES
- * We generated a new short URL id and then redirected the user to this new url.
- * We learned that when the browser receives a redirection response, it does another GET request to the url in the response
- * Using the id, our server looks up the longURL from the database, sends the id and longURL to the urls_show template, generates the HTML, and then sends this HTML back to the browser
- * The browser then renders this HTML
- *
- *** EXPLANATION OF NEW ROUTE HANDLER
- * We created a new route for handling our redirect links where requests to '/u/:id' is redirected to its actual longURL
- * This route obtained the id from the route parameters, looked up the corresponding longURL from our urlDatabase, and responded with a redirect to the longURL
- * We tested that our new route is working as expected by making requests to it with the command line tool curl and our browser
- * Added an if statement for errors
- * 
- *** EXPLANATION OF THE IF STATEMENT
- * Remember, even though we redirect the GET /urls/new requests to GET /login, we still have to protect the POST /urls route too. 
- * Hiding the page to submit new urls isn't enough - a malicious user could use simple curl commands to interact with our server.
- * Use this curl command to test the POST /urls => curl -X POST -d "longURL=http://www.lighthouselabs.com" localhost:8080/urls
- */
-
-/*** NOTE 6 - WHAT IS EXPRESS?
-* Express.js is a Node js web application server framework, which is specifically designed for building single-page, multi-page, and hybrid web applications.
-* It has become the standard server framework for node.js. Express is the backend part of something known as the MEAN stack.
-* The MEAN is a free and open-source JavaScript software stack for building dynamic web sites and web applications which has the following components;
-* 1) MongoDB – The standard NoSQL database
-* 2) Express.js – The default web applications framework
-* 3) Angular.js – The JavaScript MVC framework used for web applications
-* 4) Node.js – Framework used for scalable server-side and networking applications.
-* The Express.js framework makes it very easy to develop an application which can be used to handle multiple types of requests like the GET, PUT, and POST and DELETE requests.
-*** HOW DOES EXPRESS AND EJS WORK TOGETHER?
-* Express is just sending and receiving requests. EJS translates those templates into actual HTML.
-* EJS is like a filter that Express uses to turn templates into web pages, and as it sends its information through the filter, what you end up with is what the user ends up seeing in their browser.
-*/
-
-/*** CONCLUSION
-*** NOTE 1 - 2
-*  We used the Express render method to respond to requests by sending back a template, along with an object containing the data the template needs.
-*  We then used EJS to render this data to our web page.
-*  We used Express route parameters to pass data from our frontend to our backend via the request url.
-*  Finally, we created a partial template for our header so that we can have the code for it in one location, but render it on multiple pages
-*** NOTE 3 - 5
-*  We first created a form (urls_new.ejs) that allowed a user to input a longURL and send that data to our API via a POST request
-*  We then created a route that would render this form when the user visited /urls/new.
-*  We also created a route to handle the POST requests from our form. We used the Express library's body parsing middleware to make the POST request body human readable
-*  We generated a random string to serve as our shortURL and saved that in the database alongside the longURL submitted by the browser
-*  We created a new route to handle redirect links where the short url redirects to the longURL
-*/
-
-/*** NOTE 7 - COOKIES and DISPLAY USERNAME
- * Username won't show yet just because a route was set up. We need to modify existing routes on the server in order to rener templates properly. 
- * This can be done by passing username to each EJS template so that it knows if the user is logged in, and what their username is.
- * Pass in the username to all views that include the _header.ejs partial
- * And modify the _header.ejs partial to display the passed-in username next to the form.
- */
-
-/*** NOTE 8 - 
- * Route handler to implement a DELETE operation to remove existing shortened URLs from our database
- * If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
- */
