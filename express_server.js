@@ -69,6 +69,10 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
   const userID = req.cookies['user_id'];
 
+  if (!userID) {
+    return res.redirect('/login');
+  }
+  
   const user = usersDatabase[userID];
   const templateVars = { user: user };
   res.render('urls_new', templateVars);
@@ -78,7 +82,13 @@ app.get('/urls/new', (req, res) => {
 
 // Route handler that will match the POST request. Refer to end of Note 4 and Note 5.
 app.post('/urls', (req, res) => {
-  console.log(req.body);                    // Log the POST request body to the console
+  const userID = req.cookies['user_id'];
+
+  // if user is not logged in, this route should response with that message. Refer to Note 5. 
+  if (!userID) {
+    return res.send(`Sorry, you do not have access to edit this. Please login in first.`)
+  }
+
   const newID = generateRandomString();     // called the generateRandomString funciton created above to create newID
   urlDatabase[newID] = req.body.longURL;    // Save the longURL and short URL id to the urlDatabase
   res.redirect(`/urls/${newID}`);           // Tell browser to go to a new page that shows them the new short url they created
@@ -290,6 +300,10 @@ app.listen(PORT, () => {
  * This route obtained the id from the route parameters, looked up the corresponding longURL from our urlDatabase, and responded with a redirect to the longURL
  * We tested that our new route is working as expected by making requests to it with the command line tool curl and our browser
  * Added an if statement for errors
+ * 
+ *** EXPLANATION OF THE IF STATEMENT
+ * Remember, even though we redirect the GET /urls/new requests to GET /login, we still have to protect the POST /urls route too. 
+ * Hiding the page to submit new urls isn't enough - a malicious user could use simple curl commands to interact with our server.
  */
 
 /*** NOTE 6 - WHAT IS EXPRESS?
