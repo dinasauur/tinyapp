@@ -112,7 +112,10 @@ app.post('/urls', (req, res) => {
   }
 
   const newID = generateRandomString();     // called the generateRandomString funciton created above to create newID
-  urlDatabase[newID] = req.body.longURL;    // Save the longURL and short URL id to the urlDatabase
+  urlDatabase[newID] = {
+    longURL: req.body.longURL,              // Save the longURL and short URL id to the urlDatabase
+    userID
+  };   
   res.redirect(`/urls/${newID}`);           // Tell browser to go to a new page that shows them the new short url they created
 });
 
@@ -122,11 +125,19 @@ app.get('/urls/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
   const userID = req.cookies['user_id'];
-  const user = usersDatabase[userID];
-
+  
+  if (!userID) {
+    return res.send(`Please log in first.`)
+  }
   if (!longURL) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
     return res.send(`Error. URL does not exist.`);
   }
+  
+  if (userID !== urlDatabase[req.params.id].userID) {
+    return res.send(`Error. URL does not belong to you.`);
+  }
+  
+  const user = usersDatabase[userID];
 
   const templateVars = { id: req.params.id, longURL, user: user };
 
@@ -140,21 +151,50 @@ app.get('/u/:id', (req, res) => {
     return res.send(`That's not the correct ID. Try again.`);
   }
 
-  res.redirect(longURL);
+  res.redirect(urlDatabase[req.params.id].longURL);
 });
 
 // Route handler to implement a DELETE operation to remove existing shortened URLs from our database
 app.post('/urls/:id/delete', (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+
+  const userID = req.cookies['user_id'];
+  
+  if (!userID) {
+    return res.send(`Please log in first.`)
+  }
+  if (!longURL) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
+    return res.send(`Error. URL does not exist.`);
+  }
+  
+  if (userID !== urlDatabase[req.params.id].userID) {
+    return res.send(`Error. URL does not belong to you.`);
+  }
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
 
 // Route handler to implement an UPDATE operation --> Click Edit button, take browser to /urls/:id so in template, it should be GET for the edit button. After browser submits the new URL, redirect browser back to /urls
 app.post('/urls/:id', (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+
+  const userID = req.cookies['user_id'];
+  
+  if (!userID) {
+    return res.send(`Please log in first.`)
+  }
+  if (!longURL) {                                                    // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
+    return res.send(`Error. URL does not exist.`);
+  }
+  
+  if (userID !== urlDatabase[req.params.id].userID) {
+    return res.send(`Error. URL does not belong to you.`);
+  }
+  
   const newLongURL = req.body.longURL;
   const id = req.params.id;
 
-  urlDatabase[id] = newLongURL;
+  urlDatabase[id].longURL = newLongURL;
 
   res.redirect('/urls');
 });
