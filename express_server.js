@@ -1,6 +1,7 @@
 const express = require('express');        // Import the express library      Read Note 6
 const bcrypt = require("bcryptjs");        // library that helps with hashing passwords
 const cookieSession = require('cookie-session')
+const { usersDatabase, urlDatabase } = require("./database")
 const {
   generateRandomString,
   urlsForUser,
@@ -17,25 +18,6 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
-
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-};
-
-const usersDatabase = {
-  '6gbjcg': {
-    id: '6gbjcg',
-    email: 'pokemon@catchemall.com',
-    password: 'hellopika',
-  }
-};
 
 // This needs to come before all the routes. Why? Refer to Note 4.
 app.use(express.urlencoded({ extended: true }));
