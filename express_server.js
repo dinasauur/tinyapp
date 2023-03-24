@@ -30,6 +30,17 @@ const usersDatabase = {
   }
 };
 
+const urlsForUser = function(id) {
+  const objURL = {};
+
+  for (const key in urlDatabase) {
+    if (urlDatabase[key].userID === id) {
+      objURL[key] = urlDatabase[key].longURL
+    }
+  }
+  return objURL;
+};
+
 const findUserbyEmail = (email) => {
   for (let userID in usersDatabase) {
     if (email === usersDatabase[userID].email) {
@@ -62,10 +73,15 @@ app.get('/hello', (req, res) => {
 // Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
 app.get('/urls', (req, res) => {
   const userID = req.cookies['user_id'];
+
+  if (!userID) {
+    return res.send(`Please log in or register first.`)
+  }
+
   const user = usersDatabase[userID];
 
   const templateVars = {
-    urls: urlDatabase,                        // templateVars object contains the urlDatabase under the key urls
+    urls: urlsForUser(userID),                // templateVars object contains the urlDatabase under the key urls
     user: user,                               // To display the username, we need to pass the username to EJS template so it knows if user is logged and what the username is
   };
   res.render('urls_index', templateVars);     // rendering the templateVars in ejs files
