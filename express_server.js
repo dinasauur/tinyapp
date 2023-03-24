@@ -1,10 +1,18 @@
 const express = require('express');        // Import the express library      Read Note 6
 const bcrypt = require("bcryptjs");        // library that helps with hashing passwords
+const cookieSession = require('cookie-session')
 const app = express();                     // Define our app as an instance of express
 const PORT = 8080;                         // Define our base URL as http:\\localhost:8080
 
-const cookieParser = require('cookie-parser'); // Import the cookie-parser
 app.set('view engine', 'ejs');             // This tells the Express app to use EJS as its templating engine
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
+
 
 // Generate a random short URL ID to be used for when the browser submits a post request. Refer to Note 5.
 const generateRandomString = () => {
@@ -52,7 +60,6 @@ const findUserbyEmail = (email) => {
 
 // This needs to come before all the routes. Why? Refer to Note 4.
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 // Handler code on the root path '/'
 app.get('/', (req, res) => {
@@ -72,7 +79,7 @@ app.get('/hello', (req, res) => {
 
 // Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
 app.get('/urls', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   if (!userID) {
     return res.redirect("/login")
@@ -89,7 +96,7 @@ app.get('/urls', (req, res) => {
 
 // Route handler to render the urls_new.ejs template in the browser to present the form to the user
 app.get('/urls/new', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   if (!userID) {
     return res.redirect('/login');
@@ -104,7 +111,7 @@ app.get('/urls/new', (req, res) => {
 
 // Route handler that will match the POST request. Refer to end of Note 4 and Note 5.
 app.post('/urls', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   // if user is not logged in, this route should response with that message. Refer to Note 5. 
   if (!userID) {
@@ -124,7 +131,7 @@ app.get('/urls/:id', (req, res) => {
 
   const longURL = urlDatabase[req.params.id];
 
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
   
   if (!userID) {
     return res.redirect("/login")
@@ -158,7 +165,7 @@ app.get('/u/:id', (req, res) => {
 app.post('/urls/:id/delete', (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
   
   if (!userID) {
     return res.send(`Please log in first.`)
@@ -178,7 +185,7 @@ app.post('/urls/:id/delete', (req, res) => {
 app.post('/urls/:id', (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
   
   if (!userID) {
     return res.send(`Please log in first.`)
@@ -201,7 +208,7 @@ app.post('/urls/:id', (req, res) => {
 
 // Login Route - Display the login form (get) - Refer to Note 7
 app.get('/login', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   if (userID) {
     return res.redirect('/urls');
@@ -214,7 +221,7 @@ app.get('/login', (req, res) => {
   res.render('login', templateVars);
 });
 
-// Login Route -> Handle the login (post) and set cookies
+// Login Route -> Handle the login (post) and set session
 app.post('/login', (req, res) => {
   // extract the form information
   const { email, password } = req.body;
@@ -232,14 +239,14 @@ app.post('/login', (req, res) => {
     return res.status(403).send("Incorrect password")
   }
 
-  // set cookie with user id
-  res.cookie('user_id', user.id);
+  // set session with user id
+  req.session.user_id = user.id;    
   res.redirect('/urls');
 });
 
 // Logout Route 
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null            // clear session 
   res.redirect('/urls');
 });
 
@@ -247,7 +254,7 @@ app.post('/logout', (req, res) => {
 
 // Display the Register form
 app.get('/register', (req, res) => {
-  const userID = req.cookies['user_id'];
+  const userID = req.session.user_id;
 
   if (userID) {
     return res.redirect('/urls');
@@ -285,10 +292,9 @@ app.post('/register', (req, res) => {
     password: bcrypt.hashSync(password, 10),
   };
 
-  // store the user id in the cookies
-  res.cookie('user_id', userID);
+  // store the user id in the session
+  req.session.user_id = userID
 
-  console.log(usersDatabase);
   // redirect users to /urls page
   res.redirect('/urls');
 });
