@@ -42,18 +42,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // Handler code on the root path '/'
 app.get('/', (req, res) => {
-  res.send(`Hello!`);
-});
-
-// Handler code on additional endpoints.
-// res.json sends a JSON response => expect to see a JSON string representing the entire urlDatabase object
-app.get('/urls.json', (req, res) => {
-  res.json(urlDatabase);
-});
-
-// Handler code on sending HTML, which would be rendered in the client browser
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
+  if (req.session.user_id) {
+    res.redirect("/urls")
+  } else {
+    res.redirect("/login")
+  }
 });
 
 // Route handler code for "/urls" and use res.render() to pass the URL data to our template => send data to urls_index.ejs. Refer to Note 1 below for further explanation.
@@ -107,15 +100,13 @@ app.post('/urls', (req, res) => {
 
 // Route handler which renders the new template urls_show. Refer to Note 2.
 app.get('/urls/:id', (req, res) => {
-
-  const longURL = urlDatabase[req.params.id];
-
   const userID = req.session.user_id;
   
   if (!userID) {
     return res.redirect("/login")
   }
-  if (!longURL) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
+
+  if (!urlDatabase[req.params.id]) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
     return res.send(`Error. URL does not exist.`);
   }
   
@@ -124,6 +115,7 @@ app.get('/urls/:id', (req, res) => {
   }
   
   const user = usersDatabase[userID];
+  const longURL = urlDatabase[req.params.id].longURL;
 
   const templateVars = { id: req.params.id, longURL, user: user };
 
@@ -260,6 +252,7 @@ app.post('/register', (req, res) => {
   // check if email or password are empty strings => if they are, respond with error code
   if (email === '' || password === '') {
     res.status(400).send(`Error 400: Oops! You left some fields empty. Try again!`)
+    return
   }
 
   // create a new user in the user db -> provide a user id
