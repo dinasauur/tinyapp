@@ -1,6 +1,11 @@
 const express = require('express');        // Import the express library      Read Note 6
 const bcrypt = require("bcryptjs");        // library that helps with hashing passwords
 const cookieSession = require('cookie-session')
+const {
+  generateRandomString,
+  urlsForUser,
+  findUserbyEmail
+} = require("./helpers")
 const app = express();                     // Define our app as an instance of express
 const PORT = 8080;                         // Define our base URL as http:\\localhost:8080
 
@@ -12,12 +17,6 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
-
-
-// Generate a random short URL ID to be used for when the browser submits a post request. Refer to Note 5.
-const generateRandomString = () => {
-  return Math.random().toString(36).slice(2, 8);
-};
 
 const urlDatabase = {
   b6UTxQ: {
@@ -36,26 +35,6 @@ const usersDatabase = {
     email: 'pokemon@catchemall.com',
     password: 'hellopika',
   }
-};
-
-const urlsForUser = function(id) {
-  const objURL = {};
-
-  for (const key in urlDatabase) {
-    if (urlDatabase[key].userID === id) {
-      objURL[key] = urlDatabase[key].longURL
-    }
-  }
-  return objURL;
-};
-
-const findUserbyEmail = (email) => {
-  for (let userID in usersDatabase) {
-    if (email === usersDatabase[userID].email) {
-      return usersDatabase[userID];
-    }
-  }
-  return false;
 };
 
 // This needs to come before all the routes. Why? Refer to Note 4.
@@ -88,7 +67,7 @@ app.get('/urls', (req, res) => {
   const user = usersDatabase[userID];
 
   const templateVars = {
-    urls: urlsForUser(userID),                // templateVars object contains the urlDatabase under the key urls
+    urls: urlsForUser(userID, urlDatabase),                // templateVars object contains the urlDatabase under the key urls
     user: user,                               // To display the username, we need to pass the username to EJS template so it knows if user is logged and what the username is
   };
   res.render('urls_index', templateVars);     // rendering the templateVars in ejs files
@@ -229,7 +208,7 @@ app.post('/login', (req, res) => {
     return res.status(403).send("Please fill out the form")
   }
   // retrieve the user from the userDatabase with their email
-  const user = findUserbyEmail(email) 
+  const user = findUserbyEmail(email, usersDatabase) 
 
   if (!user) {
     return res.status(403).send("No user found with that email")
@@ -271,7 +250,7 @@ app.post('/register', (req, res) => {
   const { email, password } = req.body;
 
   // validation => does that user already exist in the userDatabase
-  const user = findUserbyEmail(email);
+  const user = findUserbyEmail(email, usersDatabase);
 
   if (user) {
     res.status(400).send(`Error 400: Sorry, that user already exists!`);
