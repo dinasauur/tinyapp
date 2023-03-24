@@ -1,5 +1,5 @@
-const { Template } = require('ejs');       // Import the ejs template engine  Read Note 6
 const express = require('express');        // Import the express library      Read Note 6
+const bcrypt = require("bcryptjs");        // library that helps with hashing passwords
 const app = express();                     // Define our app as an instance of express
 const PORT = 8080;                         // Define our base URL as http:\\localhost:8080
 
@@ -75,7 +75,7 @@ app.get('/urls', (req, res) => {
   const userID = req.cookies['user_id'];
 
   if (!userID) {
-    return res.send(`Please log in or register first.`)
+    return res.redirect("/login")
   }
 
   const user = usersDatabase[userID];
@@ -127,7 +127,7 @@ app.get('/urls/:id', (req, res) => {
   const userID = req.cookies['user_id'];
   
   if (!userID) {
-    return res.send(`Please log in first.`)
+    return res.redirect("/login")
   }
   if (!longURL) {                                     // If statement so that if user tries to search up non-existing short-urls MEANING the long-url also does not exist, hence, if long URL does not exist, output error.
     return res.send(`Error. URL does not exist.`);
@@ -218,19 +218,23 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   // extract the form information
   const { email, password } = req.body;
-
-  //// validate username and password
-  // retrieve the user from the userDatabase with their email
-  const user = findUserbyEmail(email)
-
-  // check passwords
-  if (user && user.password === password) {
-    // set cookie with user id
-    res.cookie('user_id', user.id);
-    
-    res.redirect('/urls');
+  if (!email || !password) {
+    return res.status(403).send("Please fill out the form")
   }
-  return res.status(403).send(`Error 403: Something went wrong. Please try again with the correct login information.`)
+  // retrieve the user from the userDatabase with their email
+  const user = findUserbyEmail(email) 
+
+  if (!user) {
+    return res.status(403).send("No user found with that email")
+  }
+
+  if (!bcrypt.compareSync(password, user.password)) {
+    return res.status(403).send("Incorrect password")
+  }
+
+  // set cookie with user id
+  res.cookie('user_id', user.id);
+  res.redirect('/urls');
 });
 
 // Logout Route 
@@ -278,7 +282,7 @@ app.post('/register', (req, res) => {
   usersDatabase[userID] = {
     id: userID,
     email: email,
-    password: password,
+    password: bcrypt.hashSync(password, 10),
   };
 
   // store the user id in the cookies
