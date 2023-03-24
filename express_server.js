@@ -12,15 +12,21 @@ const generateRandomString = () => {
 };
 
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const usersDatabase = {
   '6gbjcg': {
     id: '6gbjcg',
     email: 'pokemon@catchemall.com',
-    password: 'hellopika'
+    password: 'hellopika',
   }
 };
 
@@ -304,6 +310,7 @@ app.listen(PORT, () => {
  *** EXPLANATION OF THE IF STATEMENT
  * Remember, even though we redirect the GET /urls/new requests to GET /login, we still have to protect the POST /urls route too. 
  * Hiding the page to submit new urls isn't enough - a malicious user could use simple curl commands to interact with our server.
+ * Use this curl command to test the POST /urls => curl -X POST -d "longURL=http://www.lighthouselabs.com" localhost:8080/urls
  */
 
 /*** NOTE 6 - WHAT IS EXPRESS?
